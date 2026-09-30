@@ -28,13 +28,18 @@ variable "model_endpoint" {
 }
 
 variable "bedrock_model_id" {
-  description = "Cross-region inference profile for the reviewer summary (Claude Haiku 4.5, US profile)."
+  description = <<-EOT
+    Bedrock model for the reviewer summary, called with the Converse API.
+    A cross-region profile (us./global. prefix) or an in-region base model ID both work;
+    IAM is scoped to whichever you pick. Default: Amazon Nova 2 Lite via the US profile
+    (us-east-1 serves Nova 2 Lite only through cross-region profiles).
+  EOT
   type        = string
-  default     = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+  default     = "us.amazon.nova-2-lite-v1:0"
 
   validation {
-    condition     = can(regex("^(us|global)\\.anthropic\\.", var.bedrock_model_id))
-    error_message = "Use a us. or global. Anthropic inference profile ID."
+    condition     = can(regex("^((us|eu|apac|global)\\.)?[a-z0-9-]+\\.[a-z0-9.:-]+$", var.bedrock_model_id))
+    error_message = "Use a Bedrock model ID (amazon.nova-lite-v1:0) or inference profile ID (us.amazon.nova-2-lite-v1:0)."
   }
 }
 

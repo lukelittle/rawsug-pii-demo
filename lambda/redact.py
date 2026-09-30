@@ -36,7 +36,7 @@ RULES: list[tuple[str, re.Pattern[str], object]] = [
     ("PHONE", re.compile(r"(?:\+?1[ .-]?)?\(?\b\d{3}\)?[ .-]\d{3}[ .-]\d{4}\b"), "[PHONE]"),
     (
         "ACCOUNT",
-        re.compile(r"(?i)(\b(?:acct|account)(?:\s*(?:number|no\.?|#))?(?:\s+is)?[\s:#]*)([a-z0-9-]*\d[a-z0-9-]{3,})"),
+        re.compile(r"(?i)(\b(?:acct|account)(?:\s*(?:number|no\.?|#))?(?:\s+is)?[\s:#]*)(\d[\d -]{2,}\d|[a-z0-9-]*\d[a-z0-9-]{3,})"),
         lambda m: m.group(1) + "[ACCOUNT]",
     ),
     ("NUMBER", re.compile(r"\b\d{6,}\b"), "[NUMBER]"),

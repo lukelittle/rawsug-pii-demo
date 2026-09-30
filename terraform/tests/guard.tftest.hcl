@@ -68,12 +68,36 @@ run "bedrock_scoped_to_one_profile" {
   command = apply # mocked: nothing reaches AWS
 
   assert {
-    condition     = local.bedrock_profile_arn == "arn:aws:bedrock:us-east-1:123456789012:inference-profile/us.anthropic.claude-haiku-4-5-20251001-v1:0"
+    condition     = local.bedrock_profile_arn == "arn:aws:bedrock:us-east-1:123456789012:inference-profile/us.amazon.nova-2-lite-v1:0"
     error_message = "Bedrock profile ARN is wrong"
   }
   assert {
-    condition     = local.bedrock_foundation_arn == "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
+    condition     = local.bedrock_foundation_arn == "arn:aws:bedrock:*::foundation-model/amazon.nova-2-lite-v1:0"
     error_message = "Foundation model ARN is wrong"
+  }
+  assert {
+    condition = anytrue([
+      for s in data.aws_iam_policy_document.guard.statement :
+      s.sid == "BedrockModel" && length(s.condition) == 1
+    ])
+    error_message = "Through a profile, the base model must be conditioned on that profile"
+  }
+}
+
+run "bedrock_base_model_stays_in_region" {
+  command = apply # mocked: nothing reaches AWS
+
+  variables {
+    bedrock_model_id = "amazon.nova-lite-v1:0"
+  }
+
+  assert {
+    condition     = local.bedrock_foundation_arn == "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0"
+    error_message = "A base model ID must be scoped to this region"
+  }
+  assert {
+    condition     = !contains([for s in data.aws_iam_policy_document.guard.statement : s.sid], "BedrockProfile")
+    error_message = "No profile statement without a profile"
   }
 }
 

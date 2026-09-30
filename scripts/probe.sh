@@ -12,7 +12,10 @@ aws lambda invoke \
   --function-name "$FUNCTION" \
   --cli-binary-format raw-in-base64-out \
   --cli-read-timeout 310 \
-  --payload "$(jq -n --arg m "$*" '{probe: $m}')" \
+  --payload "$(jq -nc --arg m "$*" '{probe: $m}')" \
   "$out" >/dev/null
-jq . "$out"
+if jq -e '.errorMessage' "$out" >/dev/null 2>&1; then
+  echo "probe FAILED:" >&2; jq . "$out" >&2; rm -f "$out"; exit 1
+fi
+jq '{would: .would.status, reasons: [.would.reasons[]?.gate], gates, answers}' "$out"
 rm -f "$out"

@@ -17,7 +17,7 @@ data "archive_file" "layer" {
 
 resource "aws_lambda_layer_version" "deps" {
   layer_name               = "${local.name}-deps"
-  description              = "decision-circuits + anthropic (see layer/requirements.txt)"
+  description              = "decision-circuits (see layer/requirements.txt)"
   filename                 = data.archive_file.layer.output_path
   source_code_hash         = data.archive_file.layer.output_base64sha256
   compatible_runtimes      = ["python3.13"]

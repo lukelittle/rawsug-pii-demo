@@ -9,9 +9,12 @@ locals {
   use_sagemaker      = startswith(var.model_endpoint.url, "sagemaker://")
   sagemaker_endpoint = trimprefix(var.model_endpoint.url, "sagemaker://")
 
+  # A cross-region profile (us./global.) routes to the base model in several regions;
+  # a bare model ID runs in this region only. IAM in iam.tf is scoped to exactly one of these.
+  bedrock_uses_profile   = can(regex("^(us|eu|apac|global)\\.", var.bedrock_model_id))
   bedrock_profile_arn    = "arn:${local.partition}:bedrock:${var.region}:${local.account_id}:inference-profile/${var.bedrock_model_id}"
-  bedrock_foundation_id  = replace(var.bedrock_model_id, "/^(us|global)\\./", "")
-  bedrock_foundation_arn = "arn:${local.partition}:bedrock:*::foundation-model/${local.bedrock_foundation_id}"
+  bedrock_foundation_id  = replace(var.bedrock_model_id, "/^(us|eu|apac|global)\\./", "")
+  bedrock_foundation_arn = "arn:${local.partition}:bedrock:${local.bedrock_uses_profile ? "*" : var.region}::foundation-model/${local.bedrock_foundation_id}"
 
   lambda_log_group = "/aws/lambda/${local.name}-guard"
   api_log_group    = "/aws/apigateway/${local.name}"

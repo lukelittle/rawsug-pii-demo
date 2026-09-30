@@ -17,11 +17,16 @@ from decision_circuits.types import answer_from_probabilities  # noqa: E402
 
 
 def answers(pii: float, business: float, dept: dict[str, float], **nouls: float) -> dict:
+    """Hand-written answers. Any other noul the circuit asks (say, one added on stage)
+    gets a confident "no" unless given, so adding a question never breaks these tests."""
     a = {
         "pii": {"type": "noul", "noul": pii},
         "business": {"type": "noul", "noul": business},
         "dept": answer_from_probabilities(c.questions["dept"], dept),
     }
+    for qid, q in c.questions.items():
+        if qid not in a and q["type"] == "noul":
+            a[qid] = {"type": "noul", "noul": 0.02}
     a.update({k: {"type": "noul", "noul": v} for k, v in nouls.items()})
     return a
 
@@ -72,6 +77,7 @@ def test_model_says_pii_but_no_pattern_withholds_body():
         ("call 804-555-0142", "PHONE"),
         ("ssn 123-45-6789", "SSN"),
         ("acct# 99381122", "ACCOUNT"),
+        ("account number: 4417 2290 118 thanks", "ACCOUNT"),
         ("reference 7734912", "NUMBER"),
     ],
 )

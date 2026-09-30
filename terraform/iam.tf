@@ -7,11 +7,6 @@ data "aws_iam_policy_document" "assume" {
       type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
-    condition {
-      test     = "StringEquals"
-      variable = "aws:SourceAccount"
-      values   = [local.account_id]
-    }
   }
 }
 
@@ -68,22 +63,30 @@ data "aws_iam_policy_document" "guard" {
     }
   }
 
-  # A US cross-region profile routes to several regions; allow the base model
-  # there only when the call comes through this one profile.
-  statement {
-    sid       = "BedrockProfile"
-    actions   = ["bedrock:InvokeModel"]
-    resources = [local.bedrock_profile_arn]
+  # Reviewer summary (Converse = bedrock:InvokeModel). Through a cross-region
+  # profile: the profile, plus the base model in its destination regions only
+  # when the call comes through that one profile. Without one: the base model here.
+  dynamic "statement" {
+    for_each = local.bedrock_uses_profile ? [1] : []
+    content {
+      sid       = "BedrockProfile"
+      actions   = ["bedrock:InvokeModel"]
+      resources = [local.bedrock_profile_arn]
+    }
   }
 
   statement {
-    sid       = "BedrockModelViaProfile"
+    sid       = "BedrockModel"
     actions   = ["bedrock:InvokeModel"]
     resources = [local.bedrock_foundation_arn]
-    condition {
-      test     = "StringEquals"
-      variable = "bedrock:InferenceProfileArn"
-      values   = [local.bedrock_profile_arn]
+
+    dynamic "condition" {
+      for_each = local.bedrock_uses_profile ? [1] : []
+      content {
+        test     = "StringEquals"
+        variable = "bedrock:InferenceProfileArn"
+        values   = [local.bedrock_profile_arn]
+      }
     }
   }
 }
