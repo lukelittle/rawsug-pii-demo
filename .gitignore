@@ -1,0 +1,10 @@
+build/
+.venv/
+__pycache__/
+.pytest_cache/
+terraform/.terraform/
+# Not committed: generated here from a linux_amd64-only mirror; `terraform init` on your machine writes the right one.
+terraform/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars

@@ -1,0 +1,3 @@
+# Lambda layer contents. Pinned: the demo must behave tomorrow the way it did today.
+decision-circuits==0.5.5
+anthropic==1.9.0

@@ -1,0 +1,2 @@
+decision-circuits==0.5.5
+pytest>=8

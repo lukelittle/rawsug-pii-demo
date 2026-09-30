@@ -1,0 +1,57 @@
+variable "region" {
+  description = "AWS region for everything in this stack."
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "model_endpoint" {
+  description = <<-EOT
+    Where the circuit's questions are answered. Change `url` (and `model`) to swap servers:
+      hosted circuit  { url = "https://api.decisioncircuits.com/v1/systemone", model = "circuit-8b" }
+      TypeSafe's Jev  { url = "https://api.typesafe.ai/v1/systemone",          model = "jev-latest" }
+      SageMaker       { url = "sagemaker://<endpoint-name>",                     model = "circuit-8b" }
+    HTTPS servers read their API key from the Secrets Manager secret; SageMaker uses IAM.
+  EOT
+  type = object({
+    url   = string
+    model = string
+  })
+  default = {
+    url   = "https://api.decisioncircuits.com/v1/systemone"
+    model = "circuit-8b"
+  }
+
+  validation {
+    condition     = can(regex("^(https://|sagemaker://[A-Za-z0-9-]+$)", var.model_endpoint.url))
+    error_message = "model_endpoint.url must be https://... or sagemaker://<endpoint-name>."
+  }
+}
+
+variable "bedrock_model_id" {
+  description = "Cross-region inference profile for the reviewer summary (Claude Haiku 4.5, US profile)."
+  type        = string
+  default     = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+
+  validation {
+    condition     = can(regex("^(us|global)\\.anthropic\\.", var.bedrock_model_id))
+    error_message = "Use a us. or global. Anthropic inference profile ID."
+  }
+}
+
+variable "log_retention_days" {
+  description = "CloudWatch retention for the Lambda and API access logs."
+  type        = number
+  default     = 14
+}
+
+variable "throttle_rate" {
+  description = "Steady-state requests per second for the API stage."
+  type        = number
+  default     = 5
+}
+
+variable "throttle_burst" {
+  description = "Burst requests for the API stage."
+  type        = number
+  default     = 10
+}
