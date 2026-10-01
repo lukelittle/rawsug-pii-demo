@@ -4,6 +4,13 @@ resource "aws_apigatewayv2_api" "guard" {
   name          = local.name
   protocol_type = "HTTP"
   description   = "Support-message guard: System One decision circuit"
+
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["POST", "OPTIONS"]
+    allow_headers = ["content-type", "x-amz-date", "authorization", "x-amz-security-token"]
+    max_age       = 3600
+  }
 }
 
 resource "aws_apigatewayv2_integration" "guard" {
