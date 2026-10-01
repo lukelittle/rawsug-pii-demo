@@ -2,7 +2,8 @@
 # shellcheck disable=SC2034  # used by the scripts that source this
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-tf_out() { terraform -chdir="$ROOT/terraform" output -raw "$1"; }
+TF_CMD="$(command -v tofu 2>/dev/null || command -v terraform)"
+tf_out() { "$TF_CMD" -chdir="$ROOT/terraform" output -raw "$1"; }
 REGION="$(tf_out region)"
 FUNCTION="$(tf_out function_name)"
 API_URL="$(tf_out api_url)"

@@ -20,7 +20,7 @@ resource "aws_lambda_layer_version" "deps" {
   description              = "decision-circuits (see layer/requirements.txt)"
   filename                 = data.archive_file.layer.output_path
   source_code_hash         = data.archive_file.layer.output_base64sha256
-  compatible_runtimes      = ["python3.13"]
+  compatible_runtimes      = ["python3.12"]
   compatible_architectures = ["arm64"]
 }
 
@@ -33,7 +33,7 @@ resource "aws_lambda_function" "guard" {
   function_name    = "${local.name}-guard"
   description      = "Decision circuit guard: redact / route / human review"
   role             = aws_iam_role.guard.arn
-  runtime          = "python3.13"
+  runtime          = "python3.12"
   architectures    = ["arm64"]
   handler          = "handler.handler"
   filename         = data.archive_file.function.output_path

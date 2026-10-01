@@ -10,7 +10,7 @@ rm -rf build/layer
 "$PY" -m pip install --quiet --disable-pip-version-check \
   --requirement layer/requirements.txt \
   --target build/layer/python \
-  --python-version 3.13 \
+  --python-version 3.12 \
   --only-binary=:all: \
   --no-deps  # decision-circuits has none; --python-version: works even from macOS's python 3.9
 find build/layer -name __pycache__ -type d -prune -exec rm -rf {} +

@@ -9,9 +9,17 @@ bad()  { printf '  \033[31mFAIL\033[0m  %s\n' "$*"; fails=$((fails + 1)); }
 ver_ge() { [[ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -1)" == "$2" ]]; }
 
 echo "tools"
-for t in terraform aws curl jq; do command -v "$t" >/dev/null || bad "$t not installed"; done
-tfv="$(terraform version -json 2>/dev/null | jq -r .terraform_version)"
-ver_ge "${tfv:-0}" 1.7 && ok "terraform $tfv" || bad "terraform $tfv < 1.7"
+for t in aws curl jq; do command -v "$t" >/dev/null || bad "$t not installed"; done
+# Accept either terraform >= 1.7 or tofu >= 1.7
+if command -v tofu >/dev/null; then
+  tfv="$(tofu version -json 2>/dev/null | jq -r .terraform_version)"
+  ver_ge "${tfv:-0}" 1.7 && ok "tofu $tfv" || bad "tofu $tfv < 1.7"
+elif command -v terraform >/dev/null; then
+  tfv="$(terraform version -json 2>/dev/null | jq -r .terraform_version)"
+  ver_ge "${tfv:-0}" 1.7 && ok "terraform $tfv" || bad "terraform $tfv < 1.7"
+else
+  bad "neither terraform nor tofu installed"
+fi
 awsv="$(aws --version 2>&1 | sed -E 's|aws-cli/([0-9.]+).*|\1|')"
 ver_ge "${awsv:-0}" 2.9 && ok "aws-cli $awsv" || bad "aws-cli $awsv < 2.9 (need 'aws configure export-credentials')"
 curlhelp="$(curl --help all 2>/dev/null)"  # not piped into grep -q: pipefail + SIGPIPE would misreport
@@ -25,7 +33,8 @@ source scripts/_outputs.sh 2>/dev/null
 set +e  # _outputs.sh turns on errexit; this script reports failures instead of dying on them
 if [[ -z "${API_URL:-}" || -z "${FUNCTION:-}" ]]; then bad "no terraform outputs: deploy first (README 'Deploy')"; exit 1; fi
 ok "api $API_URL"
-SECRET="$(terraform -chdir=terraform output -raw api_key_secret_id)"
+TF_CMD="$(command -v tofu 2>/dev/null || command -v terraform)"
+SECRET="$("$TF_CMD" -chdir=terraform output -raw api_key_secret_id)"
 if aws secretsmanager list-secret-version-ids --secret-id "$SECRET" \
     --query 'Versions[?contains(VersionStages, `AWSCURRENT`)] | length(@)' --output text 2>/dev/null | grep -q '^1$'; then
   ok "model API key is set"

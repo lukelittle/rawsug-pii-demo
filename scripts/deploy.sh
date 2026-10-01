@@ -14,4 +14,5 @@ else
 fi
 
 [[ -d build/layer ]] || scripts/build-layer.sh
-terraform -chdir=terraform apply -auto-approve -refresh=false
+TF_CMD="$(command -v tofu 2>/dev/null || command -v terraform)"
+"$TF_CMD" -chdir=terraform apply -auto-approve -refresh=false

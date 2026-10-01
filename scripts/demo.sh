@@ -56,10 +56,10 @@ send "1. routine billing question -> routed" \
   "Hi, how do I download the invoice for my September subscription? I need it for my expense report."
 
 send "2. account number -> redacted, then routed" \
-  "I was charged twice this month. My account number is 4417-2290-118 and you can reach me at 804-555-0142. Please refund one charge."
+  "This is my personal account, not a business. My account is 4417-2290-118, SSN 123-45-6789, phone 804-555-0142. Refund my charge please."
 
 send "3. borderline -> human review (+ Nova summary on Bedrock)" \
-  "My landlord Dave keeps saying the payment for unit 4B never went through, can you check whose card that was?"
+  "Can you tell me which email is on file for my husband's account? He asked me to check?"
 
 printf '\nHuman-review queue depth: '
 aws sqs get-queue-attributes --queue-url "$QUEUE_URL" \
