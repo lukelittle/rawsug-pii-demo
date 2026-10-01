@@ -179,7 +179,7 @@ SAY: "If every gate decides, the message is redacted or routed and the full trac
 SAY: "Two things to notice. The only thing outside AWS is the model call, and swapping it for Jev or a SageMaker endpoint is one Terraform value. And Bedrock only runs on the uncertain slice, so the generative model does the one job that actually needs language. It never makes the decision. All of it is in Terraform, tagged, with least-privilege IAM."
 NEXT: "Here's the full picture." (or skip slide 20 and go straight to the demo)
 
-## Slide 20: Slide 20
+## Slide 20: Full architecture diagram (optional)
 
 [28:00 · 1 min] OPTIONAL: skip it if you're running behind; the previous slide told the story.
 SAY: "Here's the full picture, exactly what Terraform deploys. Two ways in on the left: the page you're about to see is served from CloudFront and S3, and it gets short-lived guest credentials from Cognito that can do exactly one thing, call POST /messages. Or my laptop signs the request with my own AWS credentials."
