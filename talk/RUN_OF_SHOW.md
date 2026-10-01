@@ -7,7 +7,7 @@ Richmond AWS User Group, Oct 1. Deck: `Decide_in_Code_System_One_Models_on_AWS.p
 > **An LLM writes an answer. A System One model scores the answers you allowed.**
 > So you get a probability back instead of prose, and your code, not the model, makes the decision.
 
-Everything else in the talk hangs off that sentence. If someone only remembers slides 6-7 and the demo, the talk worked.
+Everything else in the talk hangs off that sentence. If someone only remembers slides 6-9 and the demo, the talk worked.
 
 ## System One in plain words (for you, before the talk)
 
@@ -22,7 +22,7 @@ Everything else in the talk hangs off that sentence. If someone only remembers s
   probabilities that sum to 1. One forward pass, no text generated, so ~100-200 ms.
 - **Why the probability is useful:** it's trained against real outcomes, so "0.8" should be right about 8
   times in 10 (that's *calibration*). That's what makes a threshold like `>= 0.6` mean something.
-- **Why it can still be wrong** (slide 10): calibrated *on average* doesn't mean right *on this item*. On
+- **Why it can still be wrong** (slide 13): calibrated *on average* doesn't mean right *on this item*. On
   questions built to be undecidable, models still answered with 0.5-0.97 confidence. So: the model answers,
   code decides, and anything near the line (the band) goes to a person.
 - **Is it just a classifier?** Pretty much, yes, but you define the classes per request, in English, for
@@ -32,26 +32,27 @@ Everything else in the talk hangs off that sentence. If someone only remembers s
 
 | Clock | Slide(s) | What happens | Minutes |
 |---|---|---|---|
-| 0:00 | 1-2 | Title; who am I (15 seconds, QR code for LinkedIn) | 1 |
+| 0:00 | 1-2 | Title; who am I (QR code for LinkedIn) | 1 |
 | 0:01 | 3-4 | "Hands up if you've wrapped a regex around an LLM response"; decisions in disguise | 2.5 |
 | 0:03 | 5 | The interface: state + typed questions in, probabilities out | 2 |
-| 0:05 | **6** | **Why "System One"**: Kahneman, System 2 vs System One. The key slide, go slowly | 2.5 |
-| 0:08 | **7** | **Inside one call**: pack, mark, read once, score; the billing example | 2 |
-| 0:10 | 8-9 | Jev launch (two weeks old, vendor numbers); why it belongs | 3 |
-| 0:13 | 10 | Valid isn't correct: the pivot | 2 |
-| 0:15 | 11-12 | Not in Bedrock: three paths; the open clones | 4 |
-| 0:19 | 13-14 | Decision circuits; the band | 5 |
-| 0:24 | 15 | Thank you, James Barney (models, library, API) | 1 |
-| 0:25 | 16 | Architecture: walk left to right | 1.5 |
-| 0:26 | 17 | Full architecture diagram (optional, skip if behind) | 1 |
-| 0:27 | 18 | **Live demo** (below) | 11 |
-| 0:38 | 19 | Three takeaways | 1.5 |
-| 0:39 | | Q&A | 6 |
+| 0:05 | **6** | **Why "System One"**: Kahneman, System 2 vs System One. Go slowly | 2.5 |
+| 0:08 | **7-9** | **Under the hood**: how an LLM answers, how a System One model answers, side by side | 4 |
+| 0:12 | 10 | Inside one call: circuit-8b's decision head (quick) | 1 |
+| 0:13 | 11-12 | Jev launch; why it belongs in your architecture | 2 |
+| 0:15 | 13 | Valid isn't correct: the pivot | 2 |
+| 0:17 | 14-15 | Not in Bedrock: three paths; the open clones | 3.5 |
+| 0:20 | 16-17 | Decision circuits; the band | 5 |
+| 0:25 | 18 | Thank you, James Barney (models, library, API) | 1 |
+| 0:26 | 19 | Architecture: walk left to right | 1.5 |
+| 0:28 | 20 | Full architecture diagram (optional, skip if behind) | 1 |
+| 0:29 | 21 | **Live demo** (below) | 11 |
+| 0:40 | 22 | Three takeaways | 1.5 |
+| 0:41 | | Q&A | 3.5 |
 
 Every slide has autopilot speaker notes: a clock time, SAY (word-for-word script), DO (stage directions) and NEXT (the transition line). If you're running long,
-compress 8-9 and 11-12 (they're context). Never cut 6, 7, 10, 14 or the demo.
+compress 11-12 and 14-15 (they're context), and skip 20. Never cut 6-9, 13, 17 or the demo.
 
-## Demo script (slide 18)
+## Demo script (slide 21)
 
 Before the talk (stack already deployed; don't `terraform apply` from scratch on stage):
 1. 30 min out: `scripts/preflight.sh`, every line `ok`.
@@ -96,6 +97,6 @@ the recorded run. **Record one tonight** (screen capture of the full demo) and k
 
 ## Numbers on slides I couldn't re-check from here
 
-Slides 10 (0.5-0.97 on undecidable items) and 12 (the accuracy table) cite decisioncircuits.com, which I
-couldn't reach while preparing. Slide 8's launch date and latency match TypeSafe's launch coverage. Re-read
+Slides 13 (0.5-0.97 on undecidable items) and 15 (the accuracy table) cite decisioncircuits.com, which I
+couldn't reach while preparing. Slide 11's launch date and latency match TypeSafe's launch coverage. Re-read
 the scoreboard tonight so you can defend the numbers if asked.
