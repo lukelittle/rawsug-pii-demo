@@ -35,9 +35,31 @@ def decide(text: str, gates: dict[str, dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def gate_summary(gates: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    """The per-gate numbers worth showing a caller: value, probability, outcome."""
-    return {
-        name: {"value": g["value"], "p": None if g["p"] is None else round(g["p"], 3), "outcome": g["outcome"]}
-        for name, g in gates.items()
-    }
+def _r(x: Any) -> Any:
+    return None if x is None else round(float(x), 3)
+
+
+def gate_summary(gates: dict[str, dict[str, Any]], spec: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+    """The per-gate numbers worth showing a caller: value, probability, outcome, and
+    (from the compiled circuit, `spec`) the rule it was held to: op, tau, band, min_confidence."""
+    out = {}
+    for name, g in gates.items():
+        s = {"value": g["value"], "p": _r(g["p"]), "outcome": g["outcome"]}
+        if g.get("confidence") is not None:
+            s["confidence"] = _r(g["confidence"])
+        rule = (spec or {}).get(name)
+        if rule:
+            s["rule"] = {k: rule[k] for k in ("op", "tau", "band", "min_confidence") if k in rule}
+        out[name] = s
+    return out
+
+
+def answer_summary(answers: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """What the model answered, as plain numbers: P(yes) for a noul, a distribution otherwise."""
+    out: dict[str, Any] = {}
+    for qid, a in answers.items():
+        if a.get("type") == "noul":
+            out[qid] = {"type": "noul", "p": _r(a["noul"])}
+        elif "probabilities" in a:
+            out[qid] = {"type": a.get("type"), "probabilities": {k: _r(v) for k, v in a["probabilities"].items()}}
+    return out

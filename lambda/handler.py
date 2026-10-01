@@ -17,7 +17,7 @@ from typing import Any
 
 from backend import MODEL_ENDPOINT, forget_api_key, make_backend
 from circuit import REVIEW_WHEN_TRUE, VERSION, c
-from decide import decide, gate_summary
+from decide import answer_summary, decide, gate_summary
 
 # Fail at cold start with a clear message, not mid-request with a KeyError.
 _unknown = set(REVIEW_WHEN_TRUE) - {g.name for g in c.gates}
@@ -65,7 +65,7 @@ def selftest() -> dict[str, Any]:
 
 def probe(text: str) -> dict[str, Any]:
     out = c.run(make_backend(timeout=60, retry_for=170), text)
-    return {"model": out["model"], "answers": out["answers"], "gates": gate_summary(out["gates"]),
+    return {"model": out["model"], "answers": out["answers"], "gates": gate_summary(out["gates"], c.compile()),
             "would": decide(text, out["gates"])}
 
 
@@ -122,7 +122,8 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         "answers": out["answers"],
         "gates": out["gates"],
     }
-    summary = gate_summary(out["gates"])
+    summary = gate_summary(out["gates"], c.compile())
+    answered = answer_summary(out["answers"])  # the model's side of the split; gates are the code's
 
     if decision["status"] == "human_review":
         from review import enqueue  # Bedrock + SQS clients load only when needed
@@ -136,9 +137,11 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         log(event="circuit_decision", request_id=request_id, status="human_review",
             message_sha256=hashlib.sha256(text.encode()).hexdigest(), reasons=decision["reasons"], review=queued, **trace)
         return respond(202, {"status": "human_review", "request_id": request_id, **queued,
-                             "reasons": [r["gate"] for r in decision["reasons"]], "gates": summary})
+                             "reasons": [r["gate"] for r in decision["reasons"]],
+                             "answers": answered, "gates": summary, "latency_ms": latency_ms})
 
     # The message text never reaches CloudWatch, redacted or not: a hash, and what was masked.
     log(event="circuit_decision", request_id=request_id, message_sha256=hashlib.sha256(text.encode()).hexdigest(),
         **{k: v for k, v in decision.items() if k != "message"}, **trace)
-    return respond(200, {**decision, "request_id": request_id, "gates": summary})
+    return respond(200, {**decision, "request_id": request_id, "answers": answered, "gates": summary,
+                         "latency_ms": latency_ms})

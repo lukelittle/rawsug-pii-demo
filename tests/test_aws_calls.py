@@ -145,6 +145,10 @@ def test_routed(mods, aws, capsys):
     secret_ok(aws)
     status, body = call(mods, "Where is my invoice?")
     assert status == 200 and body["status"] == "routed" and body["department"] == "billing"
+    # What the GUI draws: the model's answers, and each gate's rule from the compiled circuit.
+    assert body["answers"]["pii"] == {"type": "noul", "p": 0.03}
+    assert body["gates"]["redact"]["rule"] == {"op": "and", "tau": 0.6, "band": 0.1}
+    assert body["gates"]["route"]["rule"]["min_confidence"] == 0.35 and "confidence" in body["gates"]["route"]
     assert FakeSystemOne.seen[0]["auth"] == "Bearer sk-test"  # secret stripped, sent as Bearer
     assert FakeSystemOne.seen[0]["model"] == "circuit-8b"
     log = json.loads(capsys.readouterr().out.strip().splitlines()[-1])

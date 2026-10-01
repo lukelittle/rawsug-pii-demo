@@ -78,6 +78,16 @@ sends one signed request through API Gateway. If every line says `ok`, the demo 
 
 ## Demo
 
+**GUI (what the audience sees):** `scripts/gui.sh` opens a local page in your browser. Type or pick a
+message and hit Send: a verdict banner, then **"The model answered"** (each question's probability) next to
+**"Code decided"** (each gate drawn with its threshold and uncertain band), the masked text or Nova's
+reviewer note, and a history of every message sent. A tiny local server signs each request with your AWS
+credentials, because a browser can't do SigV4 itself. It uses Python's standard library only, so the Mac's built-in python3 works.
+`scripts/gui.sh --mock` runs the same page with canned answers and no AWS, for rehearsing the clicks; the
+page says **MOCK** in red so nobody mistakes it for the model.
+
+The terminal scripts below do the same thing and are the fallback:
+
 ```bash
 scripts/preflight.sh             # 30 min before you go on
 scripts/warmup.sh --keep-warm    # separate terminal, leave it running; pings every 4 min

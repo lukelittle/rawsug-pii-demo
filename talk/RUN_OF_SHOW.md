@@ -56,21 +56,25 @@ Before the talk (stack already deployed; don't `terraform apply` from scratch on
 2. Second terminal: `scripts/warmup.sh --keep-warm` (leave it running).
 3. Editor open on `lambda/circuit.py`; terminal font large; `clear`.
 
-On stage:
-1. `scripts/demo.sh --step`. Enter before each message:
-   - **1 routed.** Point at `gates.redact.p` (tiny) and `gates.route`: "the model never saw the rule."
-   - **2 redacted.** `redact.p` high, `[ACCOUNT]`/`[PHONE]` masked: "model decides *whether*, code decides *what*."
-   - **3 human review.** `redact.p` in 0.5-0.7 → `202`, Nova's two-sentence summary: "Bedrock only runs here."
-2. Show the trace: `aws logs tail /aws/lambda/decide-in-code-guard --since 5m | grep circuit_decision`.
-3. **Live change**, in `lambda/circuit.py`, at the bottom:
+On stage (GUI: `scripts/gui.sh`, browser full screen, zoom to ~125%):
+1. Click a preset, then **Send**, one at a time:
+   - **Routine billing → ROUTED.** Point left, then right: "the model said pii 0.02; the code held that to 0.6. The model never saw the rule."
+   - **Account number → REDACTED.** `pii` high, `business` low, so the redact dot lands far right of the band;
+     `[ACCOUNT]` and `[PHONE]` masked: "model decides *whether*, code decides *what*."
+   - **Borderline → HUMAN REVIEW.** The redact dot lands *inside* the shaded band: "that's the band slide, live."
+     Nova's two-sentence note appears below: "Bedrock only runs here."
+2. **Live change**, in `lambda/circuit.py`, at the bottom:
    ```python
    c.noul("angry", "Is the customer angry?")
    c.gate("angry_to_human", Q("angry") >= 0.7, on_uncertain="escalate")
    REVIEW_WHEN_TRUE: list[str] = ["angry_to_human"]
    ```
-   `scripts/deploy.sh` (tests, then `terraform apply`, ~10 s), then:
-   `scripts/demo.sh "This is the THIRD time you've double charged me. Fix it today or I'm cancelling."` → `202`, reason `angry_to_human`.
-   Line to say: "Three lines. No prompt changed, no model retrained. The policy is code."
+   `scripts/deploy.sh` (tests, then `terraform apply`, ~10 s). Back in the browser, click **Angry customer** → Send.
+   A new `angry?` question appears on the left and a new `angry_to_human` gate on the right, with no change to the page.
+   Line to say: "Three lines. No prompt changed, no model retrained, no UI changed. The policy is code."
+3. Optional: the trace in CloudWatch, `aws logs tail /aws/lambda/decide-in-code-guard --since 5m | grep circuit_decision`.
+
+Terminal fallback (same API): `scripts/demo.sh --step`, then `scripts/demo.sh "<angry text>"`.
 
 If it breaks: `503` means the model went cold, so run `scripts/warmup.sh` and talk over the band slide. No network means
 the recorded run. **Record one tonight** (screen capture of the full demo) and keep it on the desktop.

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decide in code · guard</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #F4F1EA; --card: #FBFAF6; --ink: #1B1F26; --muted: #5B6270; --line: #D9D3C5;
+    --orange: #B4521A; --orange-soft: #F3D2B8; --blue: #2F5D9E; --green: #2E7D4F; --dark: #1B1F26;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "Space Grotesk", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 var(--sans); }
+  main { max-width: 1280px; margin: 0 auto; padding: 24px 32px 48px; }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 30px; margin: 0; letter-spacing: -0.01em; }
+  .pill { font: 600 14px var(--mono); padding: 4px 12px; border-radius: 999px; background: var(--dark); color: #F4F1EA; }
+  .pill.mock { background: #C0392B; font-size: 18px; }
+  .spacer { flex: 1; }
+  .queue { font: 15px var(--mono); color: var(--muted); }
+  .queue b { color: var(--orange); font-size: 20px; }
+
+  .compose { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  textarea { width: 100%; min-height: 84px; resize: vertical; border: 0; background: transparent; color: var(--ink);
+             font: 22px/1.4 var(--sans); outline: none; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  button { font: 600 16px var(--sans); border-radius: 10px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--line);
+           background: #fff; color: var(--ink); }
+  button.preset:hover { border-color: var(--ink); }
+  button.send { margin-left: auto; background: var(--orange); color: #fff; border-color: var(--orange); font-size: 18px; padding: 10px 22px; }
+  button:disabled { opacity: .5; cursor: wait; }
+  .hint { font-size: 14px; color: var(--muted); }
+
+  .verdict { margin-top: 22px; border-radius: 14px; padding: 18px 22px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+             background: var(--dark); color: #F4F1EA; }
+  .verdict .big { font-size: 34px; font-weight: 700; letter-spacing: -0.01em; }
+  .verdict .meta { font: 15px var(--mono); color: #C3C0BB; margin-left: auto; }
+  .verdict.routed .big { color: #9FD8B3; }
+  .verdict.review .big { color: #F0873F; }
+  .verdict.error .big { color: #FF8A80; }
+  .verdict .sub { font-size: 18px; color: #F4F1EA; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; }
+  .panel h2 { margin: 0 0 4px; font-size: 20px; }
+  .panel .cap { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+  .item { padding: 10px 0; border-top: 1px solid var(--line); }
+  .item:first-of-type { border-top: 0; }
+  .item .name { font: 600 16px var(--mono); display: flex; justify-content: space-between; gap: 10px; }
+  .item .name .num { font-weight: 700; }
+  .rule { font: 13px var(--mono); color: var(--muted); }
+  .tag { font: 600 12px var(--mono); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+  .tag.decided { background: #DCEFE3; color: var(--green); }
+  .tag.escalate, .tag.abstain { background: var(--orange-soft); color: var(--orange); }
+  .tag.flag { background: var(--orange); color: #fff; }
+
+  .track { position: relative; height: 14px; background: #ECE7DB; border-radius: 7px; margin: 8px 0 4px; }
+  .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: var(--blue); }
+  .band { position: absolute; top: -4px; bottom: -4px; background: var(--orange-soft); border-radius: 4px; opacity: .9; }
+  .tau { position: absolute; top: -6px; bottom: -6px; width: 2px; background: var(--orange); }
+  .dot { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%;
+         background: var(--blue); border: 3px solid #fff; box-shadow: 0 0 0 1px var(--line); }
+  .dot.unc { background: var(--orange); }
+  .opt { display: grid; grid-template-columns: 100px 1fr 56px; gap: 10px; align-items: center; font: 15px var(--mono); }
+  .opt .track { margin: 4px 0; height: 10px; }
+
+  .out { margin-top: 18px; }
+  .out .text { font-size: 21px; line-height: 1.5; }
+  .mask { background: var(--dark); color: #F4F1EA; border-radius: 5px; padding: 0 6px; font: 600 17px var(--mono); }
+  .summary { font-size: 20px; }
+  .err { font: 15px var(--mono); color: var(--muted); white-space: pre-wrap; }
+
+  .history { margin-top: 18px; }
+  .history .h { display: flex; gap: 12px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--line); cursor: pointer; font-size: 15px; }
+  .history .h:hover { color: var(--blue); }
+  .history .h .s { font: 600 12px var(--mono); min-width: 120px; }
+  .history .h .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; color: var(--muted); }
+  .empty { color: var(--muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Support-message guard</h1>
+    <span id="mode" class="pill">circuit-8b · live</span>
+    <span class="spacer"></span>
+    <span class="queue">human-review queue <b id="queue">–</b></span>
+  </header>
+
+  <section class="compose">
+    <textarea id="msg" placeholder="Type a support message, or pick one below…"></textarea>
+    <div class="row">
+      <button class="preset" data-text="Hi, how do I download the invoice for my September subscription? I need it for my expense report.">Routine billing</button>
+      <button class="preset" data-text="I was charged twice this month. My account number is 4417-2290-118 and you can reach me at 804-555-0142. Please refund one charge.">Account number</button>
+      <button class="preset" data-text="My landlord Dave keeps saying the payment for unit 4B never went through, can you check whose card that was?">Borderline</button>
+      <button class="preset" data-text="This is the THIRD time you've double charged me. Fix it today or I'm cancelling.">Angry customer</button>
+      <span class="hint">⌘/Ctrl + Enter to send</span>
+      <button id="send" class="send">Send</button>
+    </div>
+  </section>
+
+  <section id="result" hidden>
+    <div id="verdict" class="verdict"></div>
+    <div class="cols">
+      <div class="panel">
+        <h2>The model answered</h2>
+        <div class="cap">Probabilities from one System One call. The model never sees the rules.</div>
+        <div id="answers"></div>
+      </div>
+      <div class="panel">
+        <h2>Code decided</h2>
+        <div class="cap">Gates in <span style="font-family:var(--mono)">circuit.py</span>: thresholds and the uncertain band.</div>
+        <div id="gates"></div>
+      </div>
+    </div>
+    <div id="out" class="panel out" hidden></div>
+  </section>
+
+  <section class="panel history">
+    <h2>History</h2>
+    <div id="history"><div class="empty">Nothing sent yet.</div></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const pct = (x) => `${Math.max(0, Math.min(1, x)) * 100}%`;
+  const fmt = (x) => (x == null ? "–" : Number(x).toFixed(2));
+  const history = [];
+
+  async function info() {
+    try {
+      const r = await (await fetch("/api/info")).json();
+      if (r.mode === "mock") { const m = $("mode"); m.textContent = "MOCK · not a real model"; m.classList.add("mock"); }
+      $("queue").textContent = r.queue == null ? "–" : r.queue;
+    } catch (_) {}
+  }
+
+  function bar(p, rule, uncertain) {
+    const t = el("div", "track");
+    if (rule && rule.op !== "argmax" && rule.tau != null) {
+      const b = el("div", "band"); b.hidden = !rule.band; b.style.left = pct(rule.tau - (rule.band || 0)); b.style.width = pct(2 * (rule.band || 0)); t.append(b);
+      const tau = el("div", "tau"); tau.style.left = pct(rule.tau); t.append(tau);
+    }
+    if (p != null) { const d = el("div", "dot" + (uncertain ? " unc" : "")); d.style.left = pct(p); t.append(d); }
+    return t;
+  }
+
+  function renderAnswers(ans) {
+    const box = $("answers"); box.replaceChildren();
+    for (const [qid, a] of Object.entries(ans || {})) {
+      const it = el("div", "item");
+      if (a.type === "noul") {
+        const n = el("div", "name"); n.append(el("span", null, `${qid}?`), el("span", "num", fmt(a.p)));
+        const t = el("div", "track"); const f = el("div", "fill"); f.style.width = pct(a.p); t.append(f);
+        it.append(n, t, el("div", "rule", "P(yes)"));
+      } else if (a.probabilities) {
+        it.append(el("div", "name", qid));
+        for (const [opt, p] of Object.entries(a.probabilities)) {
+          const r = el("div", "opt"); const t = el("div", "track"); const f = el("div", "fill"); f.style.width = pct(p); t.append(f);
+          r.append(el("span", null, opt), t, el("span", null, fmt(p))); it.append(r);
+        }
+      }
+      box.append(it);
+    }
+    if (!box.children.length) box.append(el("div", "empty", "No answers (the model wasn't reached)."));
+  }
+
+  function renderGates(gates, reasons) {
+    const box = $("gates"); box.replaceChildren();
+    for (const [name, g] of Object.entries(gates || {})) {
+      const it = el("div", "item"); const rule = g.rule || {};
+      const flagged = (reasons || []).includes(name) && g.outcome === "decided";
+      const n = el("div", "name");
+      const left = el("span", null, name + "  ");
+      left.append(el("span", "tag " + (flagged ? "flag" : g.outcome), flagged ? "→ human" : g.outcome));
+      const val = g.value == null ? "undecided" : String(g.value);
+      n.append(left, el("span", "num", rule.op === "argmax" ? val : `p ${fmt(g.p)}`));
+      it.append(n);
+      if (rule.op === "argmax") {
+        it.append(bar(g.confidence, { op: "min", tau: rule.min_confidence, band: 0 }, g.outcome !== "decided"));
+        it.append(el("div", "rule", `argmax → ${val} (p ${fmt(g.p)}) · confidence ${fmt(g.confidence)} vs min ${fmt(rule.min_confidence)}`));
+      } else {
+        it.append(bar(g.p, rule, g.outcome !== "decided"));
+        it.append(el("div", "rule", rule.tau != null ? `threshold ${rule.tau} · band ±${rule.band} → value ${val}` : `value ${val}`));
+      }
+      box.append(it);
+    }
+  }
+
+  function renderText(text) {
+    const p = el("div", "text");
+    for (const part of String(text).split(/(\[[A-Z]+\])/)) p.append(/^\[[A-Z]+\]$/.test(part) ? el("span", "mask", part) : document.createTextNode(part));
+    return p;
+  }
+
+  function render(entry) {
+    const { http, ms, body, sent } = entry; const v = $("verdict"); v.replaceChildren(); v.className = "verdict";
+    const out = $("out"); out.replaceChildren(); out.hidden = true;
+    if (http === 200 && body.status === "routed") {
+      v.classList.add("routed");
+      v.append(el("span", "big", body.redacted ? `REDACTED → ${body.department}` : `ROUTED → ${body.department}`));
+      if (body.redacted) v.append(el("span", "sub", "masked: " + Object.keys(body.masks || {}).join(", ")));
+      out.append(el("h2", null, body.redacted ? "What the support team sees" : "Message"), renderText(body.message)); out.hidden = false;
+    } else if (http === 202) {
+      v.classList.add("review");
+      v.append(el("span", "big", "HUMAN REVIEW"), el("span", "sub", "because: " + (body.reasons || []).join(", ")));
+      out.append(el("h2", null, "Reviewer note (Amazon Nova on Bedrock)"));
+      out.append(body.summary ? el("div", "summary", body.summary) : el("div", "err", "No summary: " + (body.summary_error || "unknown")));
+      out.append(el("div", "rule", `queued for a person · review id ${body.review_id || "–"}`)); out.hidden = false;
+    } else {
+      v.classList.add("error");
+      const hint = http === 503 && body.error === "model_unavailable" ? "Model is cold or unreachable: run scripts/warmup.sh"
+                 : http === 403 ? "Request not signed by credentials allowed to call this API"
+                 : http === 0 ? "Couldn't reach the API from this laptop" : body.error || "Unexpected response";
+      v.append(el("span", "big", http ? `HTTP ${http}` : "NO RESPONSE"), el("span", "sub", hint));
+      out.append(el("div", "err", JSON.stringify(body, null, 2))); out.hidden = false;
+    }
+    v.append(el("span", "meta", `HTTP ${http || "–"} · ${ms} ms round trip${body.latency_ms != null ? ` · model ${body.latency_ms} ms` : ""}`));
+    renderAnswers(body.answers); renderGates(body.gates, body.reasons);
+    $("result").hidden = false;
+    $("msg").value = sent;
+  }
+
+  function addHistory(entry) {
+    history.unshift(entry);
+    const box = $("history"); box.replaceChildren();
+    history.slice(0, 12).forEach((h) => {
+      const st = h.http === 200 ? (h.body.redacted ? "REDACTED" : "ROUTED") : h.http === 202 ? "HUMAN REVIEW" : `HTTP ${h.http || "–"}`;
+      const row = el("div", "h"); row.append(el("span", "s", st), el("span", "t", h.sent));
+      row.onclick = () => render(h); box.append(row);
+    });
+  }
+
+  async function send() {
+    const message = $("msg").value.trim(); if (!message) return;
+    const btn = $("send"); btn.disabled = true; btn.textContent = "Deciding…";
+    try {
+      const r = await (await fetch("/api/send", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message }) })).json();
+      const entry = { ...r, sent: message }; render(entry); addHistory(entry);
+    } catch (e) {
+      const entry = { http: 0, ms: 0, body: { error: String(e) }, sent: message }; render(entry);
+    } finally { btn.disabled = false; btn.textContent = "Send"; info(); }
+  }
+
+  document.querySelectorAll(".preset").forEach((b) => b.onclick = () => { $("msg").value = b.dataset.text; $("msg").focus(); });
+  $("send").onclick = send;
+  $("msg").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); });
+  info(); setInterval(info, 15000);
+})();
+</script>
+</body>
+</html>
