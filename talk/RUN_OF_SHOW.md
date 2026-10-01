@@ -43,14 +43,15 @@ Everything else in the talk hangs off that sentence. If someone only remembers s
 | 0:19 | 13-14 | Decision circuits; the band | 5 |
 | 0:24 | 15 | Thank you, James Barney (models, library, API) | 1 |
 | 0:25 | 16 | Architecture: walk left to right | 1.5 |
-| 0:26 | 17 | **Live demo** (below) | 12 |
-| 0:38 | 18 | Three takeaways | 1.5 |
+| 0:26 | 17 | Full architecture diagram (optional, skip if behind) | 1 |
+| 0:27 | 18 | **Live demo** (below) | 11 |
+| 0:38 | 19 | Three takeaways | 1.5 |
 | 0:39 | | Q&A | 6 |
 
 Every slide has autopilot speaker notes: a clock time, SAY (word-for-word script), DO (stage directions) and NEXT (the transition line). If you're running long,
 compress 8-9 and 11-12 (they're context). Never cut 6, 7, 10, 14 or the demo.
 
-## Demo script (slide 17)
+## Demo script (slide 18)
 
 Before the talk (stack already deployed; don't `terraform apply` from scratch on stage):
 1. 30 min out: `scripts/preflight.sh`, every line `ok`.
