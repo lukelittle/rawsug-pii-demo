@@ -1,3 +1,22 @@
+variable "tags" {
+  description = "Applied to every taggable resource (provider default_tags). Ippon policy: project, owner, customer."
+  type        = map(string)
+  default = {
+    project  = "rawsug-pii-demo"
+    owner    = "llittle@ippon.fr"
+    customer = "training"
+  }
+
+  validation {
+    condition     = alltrue([for k in ["project", "owner", "customer"] : trimspace(lookup(var.tags, k, "")) != ""])
+    error_message = "tags must include non-empty project, owner and customer."
+  }
+  validation {
+    condition     = can(regex("^([A-Za-z0-9._%+-]+@(ippon\\.fr|ipponusa\\.com)|slack://.+)$", lookup(var.tags, "owner", "")))
+    error_message = "tags.owner must be an ippon.fr or ipponusa.com email address, or a slack:// URL."
+  }
+}
+
 variable "region" {
   description = "AWS region for everything in this stack."
   type        = string

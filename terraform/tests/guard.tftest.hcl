@@ -140,3 +140,32 @@ run "rejects_plain_http" {
 
   expect_failures = [var.model_endpoint]
 }
+
+run "ippon_tags_by_default" {
+  command = plan
+
+  assert {
+    condition     = var.tags["project"] == "rawsug-pii-demo" && var.tags["owner"] == "llittle@ippon.fr" && var.tags["customer"] == "training"
+    error_message = "Default tags must be project/owner/customer per Ippon policy"
+  }
+}
+
+run "rejects_non_ippon_owner" {
+  command = plan
+
+  variables {
+    tags = { project = "rawsug-pii-demo", owner = "someone@gmail.com", customer = "training" }
+  }
+
+  expect_failures = [var.tags]
+}
+
+run "rejects_missing_customer_tag" {
+  command = plan
+
+  variables {
+    tags = { project = "rawsug-pii-demo", owner = "slack://ippon/C123" }
+  }
+
+  expect_failures = [var.tags]
+}

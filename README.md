@@ -176,7 +176,7 @@ Nova 2 Lite in us-east-1 is served only through cross-region profiles, so the de
   profile), KMS only via Secrets Manager/SQS. The one `*` is X-Ray, which has no resource-level
   permissions. `terraform test` asserts this.
 - One customer-managed KMS key (rotation on) encrypts the secret, the queue and both log groups.
-- Everything is tagged `project=decide-in-code` (provider `default_tags`).
+- Every taggable resource gets Ippon's required tags via provider `default_tags`: `project=rawsug-pii-demo`, `owner=llittle@ippon.fr`, `customer=training` (variable `tags`; `owner` must be an ippon.fr / ipponusa.com address or a slack:// URL).
 
 ## Checks
 
