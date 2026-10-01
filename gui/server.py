@@ -30,8 +30,12 @@ def run(cmd: list[str], stdin: str | None = None, timeout: float = 40) -> str:
     return subprocess.run(cmd, input=stdin, capture_output=True, text=True, timeout=timeout, check=True).stdout
 
 
+def tf_cmd() -> str:
+    import shutil
+    return shutil.which("tofu") or shutil.which("terraform") or "terraform"
+
 def tf_output(name: str) -> str:
-    return run(["terraform", f"-chdir={ROOT / 'terraform'}", "output", "-raw", name], timeout=30).strip()
+    return run([tf_cmd(), f"-chdir={ROOT / 'terraform'}", "output", "-raw", name], timeout=30).strip()
 
 
 class Live:
