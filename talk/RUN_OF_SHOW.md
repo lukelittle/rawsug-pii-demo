@@ -1,6 +1,6 @@
 # Run of show: "Decide in code" (45 min)
 
-Richmond AWS User Group, Oct 1. Deck: `Decide_in_Code_System_One_Models_on_AWS.pptx` (speaker notes on every slide).
+Richmond AWS User Group, Oct 1. Deck: `Decide_in_Code_System_One_Models_on_AWS.pptx` (speaker notes on every slide; also exported to `SPEAKER_NOTES.md`).
 
 ## The one idea the audience must leave with
 
