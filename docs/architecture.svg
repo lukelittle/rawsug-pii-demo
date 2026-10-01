@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 860" width="1400" height="860" font-family="Space Grotesk, -apple-system, Segoe UI, Roboto, sans-serif">
+  <title>rawsug-pii-demo architecture</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1B1F26"/>
+    </marker>
+    <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#B4521A"/>
+    </marker>
+    <style>
+      .box { fill: #FBFAF6; stroke: #C9C2B3; stroke-width: 1.5; }
+      .dark { fill: #1B1F26; }
+      .t { font-size: 17px; font-weight: 700; fill: #1B1F26; }
+      .s { font-size: 13px; fill: #5B6270; }
+      .tw { font-size: 17px; font-weight: 700; fill: #F4F1EA; }
+      .sw { font-size: 13px; fill: #F0873F; }
+      .lab { font-size: 12.5px; fill: #5B6270; font-family: IBM Plex Mono, Menlo, monospace; }
+      .lo { font-size: 12.5px; fill: #B4521A; font-family: IBM Plex Mono, Menlo, monospace; }
+      .zone { font-size: 13px; font-weight: 700; fill: #B4521A; letter-spacing: .08em; }
+      .ln { stroke: #1B1F26; stroke-width: 1.8; fill: none; }
+      .lo2 { stroke: #B4521A; stroke-width: 1.8; fill: none; }
+      .dash { stroke-dasharray: 6 5; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="860" fill="#F4F1EA"/>
+  <text x="40" y="48" font-size="26" font-weight="700" fill="#1B1F26">Decide in code: support-message guard</text>
+  <text x="40" y="74" class="s">System One model answers, code decides. Everything in the dashed frame is Terraform in one AWS account (us-east-1), tagged project / owner / customer.</text>
+
+  <!-- AWS frame -->
+  <path d="M318 100 H982 Q1000 100 1000 118 V272 Q1000 290 1018 290 H1342 Q1360 290 1360 308 V802 Q1360 820 1342 820 H318 Q300 820 300 802 V118 Q300 100 318 100 Z" fill="none" stroke="#B4521A" stroke-width="1.5" stroke-dasharray="8 6"/>
+  <text x="322" y="126" class="zone">AWS ACCOUNT · us-east-1</text>
+
+  <!-- Clients -->
+  <text x="40" y="126" class="zone">CLIENTS</text>
+  <rect class="box" x="40" y="150" width="220" height="92" rx="12"/>
+  <text x="58" y="182" class="t">Browser (hosted GUI)</text>
+  <text x="58" y="204" class="s">anyone with the page URL</text>
+  <text x="58" y="224" class="s">guest identity, no login</text>
+
+  <rect class="box" x="40" y="430" width="220" height="104" rx="12"/>
+  <text x="58" y="462" class="t">Presenter laptop</text>
+  <text x="58" y="484" class="s">scripts/gui.sh or demo.sh</text>
+  <text x="58" y="504" class="s">signs with your AWS creds</text>
+  <text x="58" y="524" class="s">(SigV4, curl)</text>
+
+  <!-- Web hosting -->
+  <rect class="box" x="330" y="150" width="200" height="92" rx="12"/>
+  <text x="348" y="182" class="t">CloudFront</text>
+  <text x="348" y="204" class="s">serves the GUI page</text>
+  <text x="348" y="224" class="s">origin access control</text>
+  <rect class="box" x="570" y="150" width="170" height="92" rx="12"/>
+  <text x="588" y="182" class="t">S3</text>
+  <text x="588" y="204" class="s">index.html</text>
+  <text x="588" y="224" class="s">private bucket</text>
+
+  <rect class="box" x="330" y="280" width="410" height="92" rx="12"/>
+  <text x="348" y="312" class="t">Cognito Identity Pool (unauthenticated)</text>
+  <text x="348" y="334" class="s">short-lived creds for one role: execute-api:Invoke</text>
+  <text x="348" y="354" class="s">on POST /messages only</text>
+
+  <!-- API + Lambda -->
+  <rect class="box" x="330" y="440" width="230" height="104" rx="12"/>
+  <text x="348" y="472" class="t">API Gateway (HTTP)</text>
+  <text x="348" y="494" class="s">POST /messages</text>
+  <text x="348" y="514" class="s">AWS_IAM auth · throttled</text>
+  <text x="348" y="534" class="s">5 rps, burst 10</text>
+
+  <rect class="dark" x="620" y="425" width="300" height="134" rx="14"/>
+  <text x="642" y="460" class="tw">Lambda · runs the circuit</text>
+  <text x="642" y="484" class="sw">questions: pii? business? dept?</text>
+  <text x="642" y="506" class="sw">gates: redact · route (+ live: angry)</text>
+  <text x="642" y="528" class="sw">masks PII with plain code</text>
+  <text x="642" y="548" class="sw">python 3.12 · arm64 · layer: decision-circuits</text>
+
+  <!-- Model outside -->
+  <rect x="1030" y="150" width="300" height="104" rx="12" fill="#FBFAF6" stroke="#B4521A" stroke-width="1.8" stroke-dasharray="7 5"/>
+  <text x="1030" y="126" class="zone">OUTSIDE AWS</text>
+  <text x="1050" y="182" class="t">circuit-8b (System One)</text>
+  <text x="1050" y="204" class="lo">api.decisioncircuits.com</text>
+  <text x="1050" y="224" class="s">hosted API · scales to zero</text>
+  <text x="1050" y="244" class="s">by James Barney</text>
+  <rect x="1020" y="140" width="320" height="124" rx="16" fill="none"/>
+
+  <!-- Secrets / KMS -->
+  <rect class="box" x="1030" y="300" width="300" height="80" rx="12"/>
+  <text x="1050" y="332" class="t">Secrets Manager</text>
+  <text x="1050" y="354" class="s">model API key (never in Terraform)</text>
+
+  <!-- Outcomes -->
+  <rect class="box" x="620" y="640" width="300" height="110" rx="12" style="stroke:#2F5D9E"/>
+  <text x="642" y="672" class="t" style="fill:#2F5D9E">Decided → 200</text>
+  <text x="642" y="694" class="s">routed (+ redacted) back to caller</text>
+  <text x="642" y="714" class="s">CloudWatch Logs: full trace,</text>
+  <text x="642" y="734" class="s">never the message text</text>
+
+  <rect class="box" x="1000" y="470" width="330" height="96" rx="12" style="stroke:#B4521A"/>
+  <text x="1020" y="502" class="t" style="fill:#B4521A">Uncertain / flagged → 202</text>
+  <text x="1020" y="524" class="s">any gate escalates, or a</text>
+  <text x="1020" y="544" class="s">REVIEW_WHEN_TRUE gate fires</text>
+
+  <rect class="box" x="1000" y="610" width="330" height="80" rx="12"/>
+  <text x="1020" y="642" class="t">Bedrock · Amazon Nova 2 Lite</text>
+  <text x="1020" y="664" class="s">2-sentence reviewer note (advice only)</text>
+
+  <rect class="box" x="1000" y="720" width="330" height="80" rx="12"/>
+  <text x="1020" y="752" class="t">SQS human-review queue</text>
+  <text x="1020" y="774" class="s">message + trace + note · a person decides</text>
+
+  <rect class="box" x="330" y="640" width="230" height="110" rx="12"/>
+  <text x="348" y="672" class="t">KMS key (one CMK)</text>
+  <text x="348" y="694" class="s">encrypts the secret,</text>
+  <text x="348" y="714" class="s">the queue and both</text>
+  <text x="348" y="734" class="s">log groups</text>
+
+  <!-- arrows: hosted path -->
+  <path class="ln" d="M260 196 H326" marker-end="url(#a)"/>
+  <path class="ln" d="M530 196 H566" marker-end="url(#a)"/>
+  <path class="ln" d="M150 242 V326 H326" marker-end="url(#a)"/>
+  <text x="160" y="316" class="lab">get guest creds</text>
+  <path class="ln" d="M445 372 V436" marker-end="url(#a)"/>
+  <text x="455" y="410" class="lab">SigV4-signed POST</text>
+
+  <!-- laptop path -->
+  <path class="ln" d="M260 488 H326" marker-end="url(#a)"/>
+
+  <!-- api to lambda -->
+  <path class="ln" d="M560 492 H616" marker-end="url(#a)"/>
+
+  <!-- lambda to model -->
+  <path class="lo2" d="M860 425 V202 H1026" marker-end="url(#ao)"/>
+  <text x="848" y="396" class="lo" text-anchor="end">typed questions →</text>
+  <path class="lo2 dash" d="M1030 232 H900 V421" marker-end="url(#ao)"/>
+  <text x="848" y="414" class="lo" text-anchor="end">← probabilities</text>
+
+  <!-- lambda to secrets -->
+  <path class="ln" d="M920 450 H970 V340 H1026" marker-end="url(#a)"/>
+  <text x="980" y="400" class="lab">read key</text>
+
+  <!-- lambda to outcomes -->
+  <path class="ln" d="M770 559 V636" marker-end="url(#a)"/>
+  <path class="ln" d="M920 518 H996" marker-end="url(#a)"/>
+  <path class="ln" d="M1165 566 V606" marker-end="url(#a)"/>
+  <path class="ln" d="M1165 690 V716" marker-end="url(#a)"/>
+
+  <text x="40" y="845" class="s">Swap the model with one Terraform value: Jev (vendor API), circuit-8b (hosted, shown), or your own weights on SageMaker (sagemaker://…).</text>
+</svg>

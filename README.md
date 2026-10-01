@@ -18,6 +18,10 @@ messages. A small model answers typed questions with calibrated probabilities, a
 The talk: [`talk/`](talk/) has the deck (with speaker notes) and [`talk/RUN_OF_SHOW.md`](talk/RUN_OF_SHOW.md),
 the 45-minute timeline, demo script and likely questions.
 
+Full architecture, including the AWS-hosted GUI: [`docs/architecture.svg`](docs/architecture.svg)
+
+![Architecture](docs/architecture.svg)
+
 ## The circuit
 
 The whole decision lives in [`lambda/circuit.py`](lambda/circuit.py):
